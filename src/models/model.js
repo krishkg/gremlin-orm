@@ -126,7 +126,6 @@ class Model {
     let ifArr = '';
     const keys = Object.keys(props);
     keys.forEach(key => {
-      if (key !== 'id') {
         if (Array.isArray(props[key])) {
           ifArr = `within(`;
           for (let i = 0; i < props[key].length; i += 1) {
@@ -140,7 +139,6 @@ class Model {
         } else {
           propsStr += `.${action}('${key}',${this.stringifyValue(props[key])})`;
         }
-      }
     });
     return propsStr;
   }

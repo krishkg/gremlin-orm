@@ -1,4 +1,4 @@
-const Gremlin = require('gremlin');
+const Gremlin = require('gremlin-reconnect');
 const VertexModel = require('./models/vertex-model');
 const EdgeModel = require('./models/edge-model');
 
