@@ -1,5 +1,5 @@
 const Model = require('./model');
-
+const utils = require('./utils');
 /**
 * @param {string} label
 * @param {object} schema
@@ -26,7 +26,11 @@ class VertexModel extends Model {
     }
     let gremlinStr = `g.addV('${this.label}')`;
     if (this.g.dialect === this.g.DIALECTS.AZURE) {
-      gremlinStr += `.property('${this.g.partition}', '${props[Object.keys(props)[0]]}')`;
+      // if partition is not provided, then do not add the property
+      if (this.g.partition) {
+        const value = utils.escapeSpecialChars(props[Object.keys(props)[0]]);
+        gremlinStr += `.property('${this.g.partition}', '${value}')`;
+      }
     }
     gremlinStr += this.actionBuilder('property', props);
     return this.executeQuery(gremlinStr, callback, true);
@@ -65,10 +69,10 @@ class VertexModel extends Model {
     let inGremlinStr = vertex.getGremlinStr();
 
     if (outGremlinStr === '') {
-      return cb({'error': 'Gremlin Query has not been initialised for out Vertex'});
+      return cb({ 'error': 'Gremlin Query has not been initialised for out Vertex' });
     }
     else if (inGremlinStr === '') {
-      return cb({'error': 'Gremlin Query has not been initialised for in Vertex'});
+      return cb({ 'error': 'Gremlin Query has not been initialised for in Vertex' });
     }
     if (typeof edgeModel !== 'string') {
       const checkSchemaResponse = this.checkSchema(edgeModel.schema, props, true);
@@ -81,14 +85,14 @@ class VertexModel extends Model {
     // Remove 'g' from 'g.V()...'
     inGremlinStr = inGremlinStr.slice(1);
 
-    const [ a ] = this.getRandomVariable();
+    const [a] = this.getRandomVariable();
     let gremlinQuery = outGremlinStr + `.as('${a}')` + inGremlinStr;
     gremlinQuery += `.addE('${label}')${this.actionBuilder('property', props)}.from('${a}')`;
 
     if (both === true) {
-      const [ b ] = this.getRandomVariable(1, [a]);
+      const [b] = this.getRandomVariable(1, [a]);
       let extraGremlinQuery = `${vertex.getGremlinStr()}.as('${b}')${this.getGremlinStr().slice(1)}` +
-                      `.addE('${label}')${this.actionBuilder('property', props)}.from('${b}')`;
+        `.addE('${label}')${this.actionBuilder('property', props)}.from('${b}')`;
       const intermediate = (err, results) => {
         if (err) return cb(err);
         let resultsSoFar = results.slice(0);
@@ -209,8 +213,8 @@ class VertexModel extends Model {
     let gremlinStr = this.getGremlinStr();
     let originalAs = this.getRandomVariable()[0];
     gremlinStr += `.as('${originalAs}').outE('${label}')${this.actionBuilder('has', props)}` +
-                  `inV().inE('${label}')${this.actionBuilder('has', props)}.outV()` +
-                  `.where(neq('${originalAs}'))`;
+      `inV().inE('${label}')${this.actionBuilder('has', props)}.outV()` +
+      `.where(neq('${originalAs}'))`;
     return this.executeOrPass(gremlinStr, callback);
   }
 }

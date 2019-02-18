@@ -1,3 +1,4 @@
+const utils = require('./utils');
 /**
 * @param {object} gorm
 * @param {string} gremlinStr
@@ -61,8 +62,8 @@ class Model {
   * @param {string} option 'ASC' or 'DESC'.
   */
   order(propKey, option, callback) {
-    if (!(option === 'DESC' || option === "ASC" )) {
-      callback({error: 'Order requires option to be "ASC" or "DESC"'});
+    if (!(option === 'DESC' || option === "ASC")) {
+      callback({ error: 'Order requires option to be "ASC" or "DESC"' });
       return;
     }
     let originalGremlinStr = this.getGremlinStr();
@@ -91,12 +92,12 @@ class Model {
   executeQuery(query, callback, singleObject) {
     this.g.client.execute(query, (err, result) => {
       if (err) {
-        callback({'error': err});
+        callback({ 'error': err });
         return;
       }
       // Create nicer Object
       let response = this.g.familiarizeAndPrototype.call(this, result);
-      if(singleObject && response.length > 0) {
+      if (singleObject && response.length > 0) {
         callback(null, response[0]);
         return;
       }
@@ -126,19 +127,19 @@ class Model {
     let ifArr = '';
     const keys = Object.keys(props);
     keys.forEach(key => {
-        if (Array.isArray(props[key])) {
-          ifArr = `within(`;
-          for (let i = 0; i < props[key].length; i += 1) {
-            if (i === props[key].length - 1) {
-              ifArr += `${this.stringifyValue(props[key][i])})`;
-            } else {
-              ifArr += `${this.stringifyValue(props[key][i])},`;
-            }
+      if (Array.isArray(props[key])) {
+        ifArr = `within(`;
+        for (let i = 0; i < props[key].length; i += 1) {
+          if (i === props[key].length - 1) {
+            ifArr += `${this.stringifyValue(props[key][i])})`;
+          } else {
+            ifArr += `${this.stringifyValue(props[key][i])},`;
           }
-          propsStr += `.${action}('${key}',${ifArr})`;
-        } else {
-          propsStr += `.${action}('${key}',${this.stringifyValue(props[key])})`;
         }
+        propsStr += `.${action}('${key}',${ifArr})`;
+      } else {
+        propsStr += `.${action}('${key}',${this.stringifyValue(props[key])})`;
+      }
     });
     return propsStr;
   }
@@ -228,12 +229,12 @@ class Model {
     return variables;
   }
 
- /**
- * Parses properties into their known types from schema model
- * Will remove keys which do not exist in schema
- * @param {object} properties - properties object to parse
- * @param {object} model - model to check schema against
- */
+  /**
+  * Parses properties into their known types from schema model
+  * Will remove keys which do not exist in schema
+  * @param {object} properties - properties object to parse
+  * @param {object} model - model to check schema against
+  */
   parseProps(properties, model) {
     let schema = model ? model.schema : this.schema;
     const props = {};
@@ -244,7 +245,7 @@ class Model {
       switch (schema[key].type) {
         case 'number':
           value = parseFloat(input);
-          if(Number.isNaN(value)) value = null;
+          if (Number.isNaN(value)) value = null;
           break;
         case 'boolean':
           if (input.toString() === 'true' || input.toString() === 'false') {
@@ -272,7 +273,7 @@ class Model {
           props[key] = [];
           properties[key].forEach(arrValue => props[key].push(changeTypes(key, arrValue)));
         } else {
-          props[key] = changeTypes(key, properties[key]);  
+          props[key] = changeTypes(key, properties[key]);
         }
       }
     });
@@ -284,7 +285,8 @@ class Model {
   */
   stringifyValue(value) {
     if (typeof value === 'string') {
-      return `'${value}'`;
+      const val = utils.escapeSpecialChars(value);
+      return `'${val}'`;
     } else {
       return `${value}`;
     }
@@ -345,7 +347,7 @@ class Model {
             props[pKey] = millis;  //known side-effect
           }
         } else {
-          if(!(typeof props[pKey] === schema[pKey].type)) {
+          if (!(typeof props[pKey] === schema[pKey].type)) {
             addErrorToResponse(pKey, `'${pKey}' should be a ${schema[pKey].type}`);
           }
         }
