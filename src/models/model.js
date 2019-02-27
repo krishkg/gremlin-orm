@@ -347,7 +347,10 @@ class Model {
             props[pKey] = millis;  //known side-effect
           }
         } else {
-          if (!(typeof props[pKey] === schema[pKey].type)) {
+          if (schema[pKey].type === 'string' && props[pKey] === null) {
+            props[pKey] = '';
+          }
+          else if (!(typeof props[pKey] === schema[pKey].type)) {
             addErrorToResponse(pKey, `'${pKey}' should be a ${schema[pKey].type}`);
           }
         }
